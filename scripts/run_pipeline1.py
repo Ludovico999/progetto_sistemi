@@ -4,44 +4,28 @@ sys.path.append(os.path.abspath('..'))  # Adds the parent directory to sys.path
 
 import logging
 from src import config
-from src.load_data import load_data # STO RICHIAMANDO IL FILE LOAD DATA IN SRC E CHIAMO LA FUNZIONE load_data
+from src.load_data import load_data
 from src.preprocess import preprocess_data
-from src.make_model import train_model, train_model_logistic
-# from src.evaluation import evaluate_model
-# from src.save_results import save_predictions
+from src.make_model import train_model
 
 # Set up logging
 logging.basicConfig(filename='../logs/pipeline.log', level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 def main():
-    logging.info("Starting Sentiment Analysis Pipeline...")
+    logging.info("Starting Pipeline previsione immobiliare")
 
     # Step 1: Load data from Excel and store it in SQLite
     logging.info("Loading raw data...")
     load_data()
 
-    # Step 2: Preprocess text data
-    logging.info("Preprocessing data...")
-    preprocess_data()
+    # Step 2: Preprocess data con tutte le feature disponibili
+    #logging.info("Preprocessing data...")
+    #preprocess_data(['latitude', 'longitude', 'house_age', 'distance_MRT_station', 'number_of_convenience_stores'])
 
-    # Step 3: Train sentiment analysis model
-    logging.info("Training the model...")
+
     train_model()
-    train_model_logistic()
 
-    '''# # Step 4: Evaluate model performance
-    # logging.info("Evaluating the model...")
-    # evaluate_model(model, vectorizer, config.DATABASE_PATH)
-
-    # # Step 5: Predict sentiment on new/processed data
-    # logging.info("Making predictions...")
-    # predictions = predict_sentiment(model, vectorizer, config.DATABASE_PATH)
-
-    # # Step 6: Save results to the database
-    # logging.info("Saving predictions to database...")
-    # save_predictions(predictions, config.DATABASE_PATH)
-
-    # logging.info("Sentiment Analysis Pipeline completed successfully!")'''
+    logging.info("Pipeline completata con successo.")
 
 if __name__ == "__main__":
     main()

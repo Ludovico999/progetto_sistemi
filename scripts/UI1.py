@@ -1,45 +1,48 @@
 import os
 import sys
+import numpy as np
 sys.path.append(os.path.abspath(".."))
 from src import config
 import streamlit as st
 import pickle
+import pandas as pd
 
-# Load the models and vectorizer
-with open(os.path.join(config.MODELS_PATH, "random_forest.pickle"), "rb") as file:
-    modelRF = pickle.load(file)
+# Carica il modello
+with open(os.path.join(config.MODELS_PATH, "random_forest_regressor.pickle"), "rb") as file:
+    model = pickle.load(file)
 
-with open(f"{config.MODELS_PATH}vectorizerRF.pickle", "rb") as f:
-        vectorizerRF = pickle.load(f)
+# Titolo dell'applicazione
+st.title("Previsione Prezzo Immobiliare")
 
-with open(f"{config.MODELS_PATH}vectorizerLR.pickle", "rb") as f:
-        vectorizerLR = pickle.load(f)
+# Opzione di selezione per le variabili
+selected_vars = st.selectbox(
+    "Seleziona le variabili per la previsione del prezzo della casa:",
+    ("Latitudine e Longitudine", 'Età dell’immobile, distanza dalla stazione MRT più vicina e numero di minimarket nelle vicinanze')
+)
 
-with open(os.path.join(config.MODELS_PATH, "logistic_regression.pickle"), "rb") as file:
-    modelLR = pickle.load(file)
+# Input per le feature scelte
+input_data = {}
 
-selectedModel = st.selectbox(
-         'Quale modello vorresti utilizzare per la sentiment analysis?',
-         ('Random Forest', 'Logistic Regression'))
+if selected_vars == "Latitudine e Longitudine":
+    latitudine = input_data["latitude"] = st.number_input("Inserisci la latitudine:")
+    longitudine = input_data["longitude"] = st.number_input("Inserisci la longitudine:")
+elif selected_vars == 'Età dell’immobile, distanza dalla stazione MRT più vicina e numero di minimarket nelle vicinanze':
+    eta = input_data["house_age"] = st.number_input("Inserisci l'età della casa:")
+    distance = input_data["distance_MRT_station"] = st.number_input("Distanza alla stazione MRT:")
+    num_stores = input_data["number_of_convenience_stores"] = st.number_input("Numero di negozi di convenienza:")
+else:
+    latitudine = input_data["latitude"] = st.number_input("Inserisci la latitudine:")
+    longitudine = input_data["longitude"] = st.number_input("Inserisci la longitudine:")
+    eta = input_data["house_age"] = st.number_input("Inserisci l'età della casa:")
+    distance = input_data["distance_MRT_station"] = st.number_input("Distanza alla stazione MRT:")
+    num_stores = input_data["number_of_convenience_stores"] = st.number_input("Numero di negozi di convenienza:")
 
-st.title("Text Classification")
-
-# Text input
-user_input = st.text_area("enter text to classify", "")
-
-# Predict when button is clicked
-if st.button("Classify"):
-    if user_input.strip() == "":
-        st.warning("Please enter some text.")
-    else:
-        # Transform input and predict
-        if selectedModel == "Random Forest":
-            x = vectorizerRF.transform([user_input])
-            prediction = modelRF.predict(x)[0]
-        elif selectedModel == "Logistic Regression":
-            x = vectorizerLR.transform([user_input])
-            prediction = modelLR.predict(x)[0]             
-        if prediction == "positive":
-            st.success(f"Predicted class: {prediction}")
-        elif prediction == 'negative':
-            st.warning(f"Predicted class: {prediction}")
+# Predizione quando il bottone viene cliccato
+if st.button("Predici"):
+    if selected_vars == "Latitudine e Longitudine":
+        x_input = np.array([[latitudine, longitudine, 17, 1083, 4]])
+        prediction = model.predict(x_input)[0]
+    elif selected_vars == 'Età dell’immobile, distanza dalla stazione MRT più vicina e numero di minimarket nelle vicinanze':
+        x_input = np.array([[25, 121, eta, distance, num_stores]])
+        prediction = model.predict(x_input)[0]      
+    st.success(f"Il prezzo previsto della casa è: {round(prediction, 2)} dollari per unità di area")
